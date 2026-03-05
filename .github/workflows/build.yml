@@ -1,0 +1,59 @@
+name: Build Release
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build macOS app
+        run: pyinstaller petdicomfixer.spec
+
+      - name: Zip macOS app
+        run: cd dist && zip -r ../PETDICOMFixer-macOS.zip "PET DICOM Fixer.app"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PETDICOMFixer-macOS.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build Windows exe
+        run: pyinstaller petdicomfixer-win.spec
+
+      - name: Zip Windows exe
+        run: Compress-Archive -Path "dist\PET DICOM Fixer.exe" -DestinationPath PETDICOMFixer-Windows.zip
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PETDICOMFixer-Windows.zip
