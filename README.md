@@ -106,6 +106,11 @@ python main.py
 5. **Calculator tab**: Explore SUV impact of parameter changes independently (no DICOM needed)
 6. Click **Apply & Save** to create corrected files in a new `_corrected` folder
 
+## Recent Fixes
+
+- **Per-slice RescaleSlope for SUVmax**: SUVmax calculation now reads `RescaleSlope` from each individual slice instead of using only the first slice's value. Some scanners (especially GE) assign different slopes per slice, which could cause SUVmax to be slightly off if the hottest voxel was on a slice with a different slope.
+- **Skip non-image DICOM objects**: The file loader now checks for the `Rows` tag to identify actual image files, silently skipping non-image objects like Real World Value Mapping (RWV) and Presentation State files that could cause crashes during pixel data access.
+
 ## Compatibility
 
 Currently tested with **GE PET/CT** scanners only.
