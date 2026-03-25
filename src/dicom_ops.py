@@ -362,16 +362,19 @@ def calculate_suvmax(folder: Path) -> dict:
         except Exception:
             pass
 
-    # Find max pixel across all slices
+    # Find max Bq/mL across all slices (each slice may have its own RescaleSlope)
+    max_bqml = 0.0
     max_pixel = 0
     for f in files:
         ds = pydicom.dcmread(str(f))
         px = ds.pixel_array
         file_max = int(px.max())
-        if file_max > max_pixel:
+        slice_slope = float(getattr(ds, "RescaleSlope", slope))
+        slice_intercept = float(getattr(ds, "RescaleIntercept", intercept))
+        file_bqml = file_max * slice_slope + slice_intercept
+        if file_bqml > max_bqml:
+            max_bqml = file_bqml
             max_pixel = file_max
-
-    max_bqml = max_pixel * slope + intercept
 
     # Check if SUV can be calculated
     result = {"max_bqml": max_bqml, "max_pixel": max_pixel, "suvmax": None, "suv_factor": None, "error": None}
