@@ -164,13 +164,18 @@ def parse_tag_input(tag_name: str, user_input: str) -> str:
 
 
 def find_dicom_files(folder: Path) -> list[Path]:
-    """Find and validate DICOM files in a folder."""
+    """Find and validate DICOM image files in a folder.
+
+    Skips non-image DICOM objects (e.g. RWV, Presentation State)
+    by checking for the Rows tag which only image objects have.
+    """
     files = []
     for f in sorted(folder.iterdir()):
         if f.is_file() and not f.name.startswith("."):
             try:
-                pydicom.dcmread(str(f), stop_before_pixels=True)
-                files.append(f)
+                ds = pydicom.dcmread(str(f), stop_before_pixels=True)
+                if hasattr(ds, "Rows"):
+                    files.append(f)
             except Exception:
                 continue
     return files
